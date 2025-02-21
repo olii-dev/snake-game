@@ -1,3 +1,15 @@
+const startScreen = document.getElementById('start-screen');
+const startButton = document.getElementById('start-button');
+
+startButton.addEventListener('click', () => {
+    startScreen.style.display = 'none';
+    resetGame();
+});
+
+window.addEventListener('load', () => {
+    startScreen.style.display = 'flex';
+});
+
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 const scoreDisplay = document.getElementById('score');
@@ -7,6 +19,8 @@ const gameOverScreen = document.getElementById('game-over-screen');
 const gameOverScore = document.getElementById('game-over-score');
 const gameOverHighScore = document.getElementById('game-over-high-score');
 const restartButton = document.getElementById('restart-button');
+const pauseScreen = document.getElementById('pause-screen');
+const continueButton = document.getElementById('continue-button');
 
 const gridSize = 20;
 let snake = [{ x: 5, y: 5 }];
@@ -15,14 +29,15 @@ let food = { x: 10, y: 10 };
 let powerUp = null;
 let score = 0;
 let highScore = localStorage.getItem('highScore') || 0;
-let gameInterval = 110;
+let gameInterval = 120;
 let gameLoopId;
 let isGameOver = false;
 let isInvincible = false;
 let activePowerUp = null;
+let isPaused = false;
 
 function gameLoop() {
-    if (isGameOver) return;
+    if (isGameOver || isPaused) return;
     update();
     draw();
     gameLoopId = setTimeout(gameLoop, gameInterval);
@@ -108,6 +123,9 @@ function spawnFood() {
 }
 
 function spawnPowerUp() {
+    if (activePowerUp) {
+        return;
+    }
     if (Math.random() < 0.3) {
         powerUp = {
             x: Math.floor(Math.random() * (canvas.width / gridSize)),
@@ -183,21 +201,38 @@ function resetGame() {
     direction = { x: 1, y: 0 };
     score = 0;
     scoreDisplay.textContent = `Score: ${score}`;
-    gameInterval = 110;
+    gameInterval = 120;
     isGameOver = false;
     isInvincible = false;
     activePowerUp = null;
     powerupMessage.textContent = '';
     gameOverScreen.style.display = 'none';
+    pauseScreen.style.display = 'none';
     spawnFood();
     gameLoop();
 }
 
+function togglePause() {
+    isPaused = !isPaused;
+    if (isPaused) {
+        clearTimeout(gameLoopId);
+        pauseScreen.style.display = 'flex';
+    } else {
+        pauseScreen.style.display = 'none';
+        gameLoop();
+    }
+}
+
 restartButton.addEventListener('click', resetGame);
+continueButton.addEventListener('click', togglePause);
 
 document.addEventListener('keydown', event => {
     if (isGameOver && event.code === 'Space') {
         resetGame();
+        return;
+    }
+    if (event.code === 'KeyP') {
+        togglePause();
         return;
     }
     switch (event.key) {
@@ -218,4 +253,3 @@ document.addEventListener('keydown', event => {
 
 highScoreDisplay.textContent = `High Score: ${highScore}`;
 spawnFood();
-gameLoop();

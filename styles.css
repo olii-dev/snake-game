@@ -26,7 +26,7 @@ canvas {
     font-weight: bold;
 }
 
-#game-over-screen {
+#game-over-screen, #pause-screen {
     display: none;
     position: fixed;
     top: 0;
@@ -39,7 +39,7 @@ canvas {
     z-index: 10;
 }
 
-#game-over-screen div {
+#game-over-screen div, #pause-screen div {
     background-color: white;
     padding: 30px;
     border-radius: 12px;
@@ -47,19 +47,19 @@ canvas {
     text-align: center;
 }
 
-#game-over-screen h2 {
+#game-over-screen h2, #pause-screen h2 {
     color: #dc3545;
     font-size: 32px;
     margin-bottom: 20px;
 }
 
-#game-over-screen p {
+#game-over-screen p, #pause-screen p {
     font-size: 24px;
     color: #6c757d;
     margin-bottom: 20px;
 }
 
-#game-over-screen button {
+#game-over-screen button, #pause-screen button {
     background-color: green;
     color: white;
     border: none;
@@ -70,6 +70,56 @@ canvas {
     transition: background-color 0.3s;
 }
 
-#game-over-screen button:hover {
+#game-over-screen button:hover, #pause-screen button:hover {
+    background-color: rgb(70, 204, 70);
+}
+
+footer {
+    text-align: center;
+    padding: 10px;
+    color: black;
+    position: absolute;
+    bottom: 0;
+}
+
+#start-screen {
+    display: flex;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    justify-content: center;
+    align-items: center;
+    z-index: 10;
+}
+
+#start-screen div {
+    background-color: white;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    text-align: center;
+}
+
+#start-screen h2 {
+    color: black;
+    font-size: 32px;
+    margin-bottom: 20px;
+}
+
+#start-screen button {
+    background-color: green;
+    color: white;
+    border: none;
+    padding: 15px 30px;
+    font-size: 18px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+#start-screen button:hover {
     background-color: rgb(70, 204, 70);
 }
