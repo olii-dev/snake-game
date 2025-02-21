@@ -6,16 +6,40 @@
     <title>Snake</title>
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet">
-    <link rel="icon" type="images/png" href="images/snake-favicon.png" sizes="96x96" />
+    <link rel="icon" type="image/png" href="images/snake-favicon.png" sizes="96x96" />
 </head>
 <body>
     <div id="start-screen">
-        <div>
+        <div class="customization-form">
             <h2>Welcome to Snake!</h2>
+            <br>
+            <div class="customization-option">
+                <label for="snake-color">Snake Color:</label>
+                <input type="color" id="snake-color" name="snake-color" value="#00FF00">
+            </div>
+            <div class="customization-option">
+                <label for="game-speed">Game Speed:</label>
+                <select id="game-speed">
+                    <option value="150">Slow</option>
+                    <option value="120" selected>Normal</option>
+                    <option value="90">Fast</option>
+                </select>
+            </div>
+            <div class="customization-option">
+                <label for="grid-size">Grid Size:</label>
+                <select id="grid-size">
+                    <option value="20">20x20</option>
+                    <option value="25">25x25</option>
+                </select>
+            </div>
+            <div class="customization-option">
+                <label for="food-color">Food Color:</label>
+                <input type="color" id="food-color" name="food-color" value="#FF0000">
+            </div>
             <br>
             <button id="start-button">Start Game</button>
         </div>
-    </div>
+    </div>               
     <canvas id="gameCanvas" width="400" height="400"></canvas>
     <div id="score">Score: 0</div>
     <div id="high-score">High Score: 0</div>

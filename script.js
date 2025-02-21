@@ -1,9 +1,13 @@
 const startScreen = document.getElementById('start-screen');
 const startButton = document.getElementById('start-button');
+const snakeColorInput = document.getElementById('snake-color');
+const gameSpeedInput = document.getElementById('game-speed');
+const gridSizeInput = document.getElementById('grid-size');
+const foodColorInput = document.getElementById('food-color');
 
 startButton.addEventListener('click', () => {
     startScreen.style.display = 'none';
-    resetGame();
+    initializeGame();
 });
 
 window.addEventListener('load', () => {
@@ -22,7 +26,6 @@ const restartButton = document.getElementById('restart-button');
 const pauseScreen = document.getElementById('pause-screen');
 const continueButton = document.getElementById('continue-button');
 
-const gridSize = 20;
 let snake = [{ x: 5, y: 5 }];
 let direction = { x: 1, y: 0 };
 let food = { x: 10, y: 10 };
@@ -35,6 +38,22 @@ let isGameOver = false;
 let isInvincible = false;
 let activePowerUp = null;
 let isPaused = false;
+let snakeColor = '#00FF00';
+let gridSize = 20;
+let foodColor = '#FF0000';
+const powerupFrequency = 0.3;
+
+function initializeGame() {
+    snakeColor = snakeColorInput.value;
+    gameInterval = parseInt(gameSpeedInput.value, 10);
+    gridSize = parseInt(gridSizeInput.value, 10);
+    foodColor = foodColorInput.value;
+
+    canvas.width = gridSize * 20;
+    canvas.height = gridSize * 20;
+
+    resetGame();
+}
 
 function gameLoop() {
     if (isGameOver || isPaused) return;
@@ -93,7 +112,7 @@ function update() {
 
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = 'green';
+    ctx.fillStyle = snakeColor;
     snake.forEach((part, index) => {
         ctx.fillRect(part.x * gridSize, part.y * gridSize, gridSize, gridSize);
         if (index === 0) {
@@ -102,7 +121,7 @@ function draw() {
             ctx.fillRect(part.x * gridSize + 13, part.y * gridSize + 5, 2, 2);
         }
     });
-    ctx.fillStyle = 'red';
+    ctx.fillStyle = foodColor;
     ctx.fillRect(food.x * gridSize, food.y * gridSize, gridSize, gridSize);
     if (powerUp) {
         ctx.fillStyle = 'blue';
@@ -126,7 +145,7 @@ function spawnPowerUp() {
     if (activePowerUp) {
         return;
     }
-    if (Math.random() < 0.3) {
+    if (Math.random() < powerupFrequency) {
         powerUp = {
             x: Math.floor(Math.random() * (canvas.width / gridSize)),
             y: Math.floor(Math.random() * (canvas.height / gridSize)),
@@ -201,7 +220,7 @@ function resetGame() {
     direction = { x: 1, y: 0 };
     score = 0;
     scoreDisplay.textContent = `Score: ${score}`;
-    gameInterval = 120;
+    gameInterval = parseInt(gameSpeedInput.value, 10);
     isGameOver = false;
     isInvincible = false;
     activePowerUp = null;
