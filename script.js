@@ -31,7 +31,7 @@ let direction = { x: 1, y: 0 };
 let food = { x: 10, y: 10 };
 let powerUp = null;
 let score = 0;
-let highScore = localStorage.getItem('highScore') || 0;
+let highScore = 0;
 let gameInterval = 120;
 let gameLoopId;
 let isGameOver = false;
@@ -41,6 +41,7 @@ let isPaused = false;
 let snakeColor = '#00FF00';
 let gridSize = 20;
 let foodColor = '#FF0000';
+let scoreMultiplier = 1;
 const powerupFrequency = 0.3;
 
 function initializeGame() {
@@ -51,6 +52,11 @@ function initializeGame() {
 
     canvas.width = gridSize * 20;
     canvas.height = gridSize * 20;
+
+    // Load high score for the current grid size and speed
+    const highScoreKey = `highScore_${gridSize}_${gameInterval}`;
+    highScore = localStorage.getItem(highScoreKey) || 0;
+    highScoreDisplay.textContent = `High Score: ${highScore}`;
 
     resetGame();
 }
@@ -82,12 +88,13 @@ function update() {
     snake.unshift(head);
 
     if (head.x === food.x && head.y === food.y) {
-        score++;
+        score += 1 * scoreMultiplier;
         scoreDisplay.textContent = `Score: ${score}`;
         if (score > highScore) {
             highScore = score;
             highScoreDisplay.textContent = `High Score: ${highScore}`;
-            localStorage.setItem('highScore', highScore);
+            const highScoreKey = `highScore_${gridSize}_${gameInterval}`;
+            localStorage.setItem(highScoreKey, highScore);
         }
         spawnFood();
         spawnPowerUp();
@@ -155,31 +162,18 @@ function spawnPowerUp() {
 }
 
 function getRandomPowerUpType() {
-    const types = ['speed', 'invincibility', 'growth', 'slow'];
+    const types = ['invincibility', 'growth', 'slow', 'scoreMultiplier'];
     return types[Math.floor(Math.random() * types.length)];
 }
 
 function activatePowerUp(type) {
+    let powerUpDuration = 0;
     switch (type) {
-        case 'speed':
-            gameInterval *= 0.8;
-            activePowerUp = 'speed';
-            powerupMessage.textContent = 'Power-Up: Speed Boost!';
-            setTimeout(() => {
-                gameInterval /= 0.8;
-                powerupMessage.textContent = '';
-                activePowerUp = null;
-            }, 5000);
-            break;
         case 'invincibility':
             isInvincible = true;
             activePowerUp = 'invincibility';
             powerupMessage.textContent = 'Power-Up: Invincibility!';
-            setTimeout(() => {
-                isInvincible = false;
-                powerupMessage.textContent = '';
-                activePowerUp = null;
-            }, 5000);
+            powerUpDuration = 5000;
             break;
         case 'growth':
             for (let i = 0; i < 3; i++) {
@@ -189,22 +183,42 @@ function activatePowerUp(type) {
             powerupMessage.textContent = 'Power-Up: Growth Spurt!';
             score = snake.length - 1;
             scoreDisplay.textContent = `Score: ${score}`;
-            setTimeout(() => {
-                powerupMessage.textContent = '';
-                activePowerUp = null;
-            }, 3000);
+            powerUpDuration = 3000;
             break;
         case 'slow':
             gameInterval *= 1.5;
             activePowerUp = 'slow';
             powerupMessage.textContent = 'Power-Up: Slow Motion!';
-            setTimeout(() => {
-                gameInterval /= 1.5;
-                powerupMessage.textContent = '';
-                activePowerUp = null;
-            }, 5000);
+            powerUpDuration = 5000;
+            break;
+        case 'scoreMultiplier':
+            scoreMultiplier = 2;
+            activePowerUp = 'scoreMultiplier';
+            powerupMessage.textContent = 'Power-Up: Score Multiplier!';
+            powerUpDuration = 7000;
             break;
     }
+
+    // Notify the player when the power-up is about to end
+    setTimeout(() => {
+        powerupMessage.textContent = `Power-Up ending soon!`;
+    }, powerUpDuration - 2000); // Notify 2 seconds before the power-up ends
+
+    setTimeout(() => {
+        switch (type) {
+            case 'invincibility':
+                isInvincible = false;
+                break;
+            case 'slow':
+                gameInterval /= 1.5;
+                break;
+            case 'scoreMultiplier':
+                scoreMultiplier = 1;
+                break;
+        }
+        powerupMessage.textContent = '';
+        activePowerUp = null;
+    }, powerUpDuration);
 }
 
 function gameOver() {
@@ -219,6 +233,7 @@ function resetGame() {
     snake = [{ x: 5, y: 5 }];
     direction = { x: 1, y: 0 };
     score = 0;
+    scoreMultiplier = 1;
     scoreDisplay.textContent = `Score: ${score}`;
     gameInterval = parseInt(gameSpeedInput.value, 10);
     isGameOver = false;
