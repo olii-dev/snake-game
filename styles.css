@@ -149,3 +149,184 @@ footer {
     position: absolute;
     bottom: 0;
 }
+
+/* Classic Style */
+.classic canvas {
+    background-color: #fff;
+}
+
+.classic .snake-part {
+    fill: #00FF00;
+    stroke: #008000;
+    stroke-width: 2;
+}
+
+.classic .food {
+    fill: #FF0000;
+    stroke: #8B0000;
+    stroke-width: 2;
+}
+
+.classic .power-up {
+    fill: blue;
+    stroke: yellow;
+    stroke-width: 2;
+}
+
+/* Modern Style */
+.modern canvas {
+    background-image: url('images/modern-background.png'); /* Ensure this image exists */
+    background-size: cover;
+    border-color: #fff;
+}
+
+.modern .snake-part {
+    fill: #3498db;
+    stroke: #2980b9;
+    stroke-width: 2;
+    border-radius: 5px; /* Slightly rounded corners for modern look */
+    filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.3)); /* Add shadow */
+}
+
+.modern .food {
+    fill: #e74c3c;
+    stroke: #c0392b;
+    stroke-width: 2;
+    border-radius: 5px; /* Slightly rounded corners for modern look */
+    filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.3)); /* Add shadow */
+}
+
+.modern .power-up {
+    fill: #8e44ad;
+    stroke: #9b59b6;
+    stroke-width: 2;
+    border-radius: 5px; /* Slightly rounded corners for modern look */
+    filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.3)); /* Add shadow */
+}
+
+/* Retro Style */
+.retro canvas {
+    background-color: #000;
+    border-color: #fff;
+    position: relative;
+}
+
+.retro .snake-part {
+    fill: #0F0;
+    stroke: #0A0;
+    stroke-width: 2;
+    filter: url(#pixelate); /* Apply pixelation filter */
+}
+
+.retro .food {
+    fill: #F00;
+    stroke: #A00;
+    stroke-width: 2;
+    filter: url(#pixelate); /* Apply pixelation filter */
+}
+
+.retro .power-up {
+    fill: #0FF;
+    stroke: #0AA;
+    stroke-width: 2;
+    filter: url(#pixelate); /* Apply pixelation filter */
+}
+
+/* Scanlines for Retro Style */
+.retro canvas::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: repeating-linear-gradient(
+        transparent,
+        transparent 1px,
+        rgba(255, 255, 255, 0.1) 1px,
+        rgba(255, 255, 255, 0.1) 2px
+    );
+    pointer-events: none;
+}
+
+/* Settings Button */
+#settings-button {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: green;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    font-size: 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    z-index: 10;
+}
+
+#settings-button:hover {
+    background-color: rgb(70, 204, 70);
+}
+
+/* Settings Button */
+#settings-button {
+    background-color: green;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    font-size: 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    margin-top: 10px;
+}
+
+#settings-button:hover {
+    background-color: rgb(70, 204, 70);
+}
+
+/* Settings Panel */
+#settings-panel {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    justify-content: center;
+    align-items: center;
+    z-index: 20; /* Ensure it appears over the game over screen */
+}
+
+#settings-panel .customization-form {
+    background-color: white;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    width: 300px;
+}
+
+#settings-panel h2 {
+    color: #333;
+    font-size: 24px;
+    margin-bottom: 20px;
+}
+
+#settings-panel button {
+    background-color: green;
+    color: white;
+    border: none;
+    padding: 15px 30px;
+    font-size: 18px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    margin-top: 10px;
+}
+
+#settings-panel button:hover {
+    background-color: rgb(70, 204, 70);
+}

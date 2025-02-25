@@ -36,10 +36,57 @@
                 <label for="food-color">Food Color:</label>
                 <input type="color" id="food-color" name="food-color" value="#FF0000">
             </div>
+            <div class="customization-option">
+                <label for="game-style">Game Style:</label>
+                <select id="game-style">
+                    <option value="classic">Classic</option>
+                    <option value="modern">Modern</option>
+                    <option value="retro">Retro</option>
+                </select>
+            </div>
             <br>
             <button id="start-button">Start Game</button>
         </div>
-    </div>               
+    </div>
+    <div id="settings-panel">
+        <div class="customization-form">
+            <h2>Game Settings</h2>
+            <div class="customization-option">
+                <label for="settings-snake-color">Snake Color:</label>
+                <input type="color" id="settings-snake-color" name="settings-snake-color" value="#00FF00">
+            </div>
+            <div class="customization-option">
+                <label for="settings-game-speed">Game Speed:</label>
+                <select id="settings-game-speed">
+                    <option value="150">Slow</option>
+                    <option value="120" selected>Normal</option>
+                    <option value="90">Fast</option>
+                </select>
+            </div>
+            <div class="customization-option">
+                <label for="settings-grid-size">Grid Size:</label>
+                <select id="settings-grid-size">
+                    <option value="20">20x20</option>
+                    <option value="25">25x25</option>
+                </select>
+            </div>
+            <div class="customization-option">
+                <label for="settings-food-color">Food Color:</label>
+                <input type="color" id="settings-food-color" name="settings-food-color" value="#FF0000">
+            </div>
+            <div class="customization-option">
+                <label for="settings-game-style">Game Style:</label>
+                <select id="settings-game-style">
+                    <option value="classic">Classic</option>
+                    <option value="modern">Modern</option>
+                    <option value="retro">Retro</option>
+                </select>
+            </div>
+            <br>
+            <button id="apply-settings-button">Apply Settings</button>
+            <button id="close-settings-button">Close</button>
+        </div>
+    </div>
     <canvas id="gameCanvas" width="400" height="400"></canvas>
     <div id="score">Score: 0</div>
     <div id="high-score">High Score: 0</div>
@@ -50,6 +97,7 @@
             <p id="game-over-score">Your Score: 0</p>
             <p id="game-over-high-score">High Score: 0</p>
             <button id="restart-button">Restart</button>
+            <button id="settings-button">Settings</button>
         </div>
     </div>
     <div id="pause-screen">
@@ -61,6 +109,14 @@
     <footer>
         <p>Created by Oli</p>
     </footer>
+
+    <svg xmlns="http://www.w3.org/2000/svg" version="1.1" style="display: none;">
+        <filter id="pixelate">
+            <feFlood x="4" y="4" height="10" width="10" flood-color="white" result="pixelation"/>
+            <feComposite in="SourceGraphic" in2="pixelation" operator="in"/>
+        </filter>
+    </svg>
+
     <script src="script.js"></script>
 </body>
 </html>

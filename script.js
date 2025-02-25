@@ -4,6 +4,16 @@ const snakeColorInput = document.getElementById('snake-color');
 const gameSpeedInput = document.getElementById('game-speed');
 const gridSizeInput = document.getElementById('grid-size');
 const foodColorInput = document.getElementById('food-color');
+const gameStyleInput = document.getElementById('game-style');
+const settingsButton = document.getElementById('settings-button');
+const settingsPanel = document.getElementById('settings-panel');
+const applySettingsButton = document.getElementById('apply-settings-button');
+const closeSettingsButton = document.getElementById('close-settings-button');
+const settingsSnakeColorInput = document.getElementById('settings-snake-color');
+const settingsGameSpeedInput = document.getElementById('settings-game-speed');
+const settingsGridSizeInput = document.getElementById('settings-grid-size');
+const settingsFoodColorInput = document.getElementById('settings-food-color');
+const settingsGameStyleInput = document.getElementById('settings-game-style');
 
 startButton.addEventListener('click', () => {
     startScreen.style.display = 'none';
@@ -37,21 +47,55 @@ let gameLoopId;
 let isGameOver = false;
 let isInvincible = false;
 let activePowerUp = null;
+let powerUpTimeoutId = null;
 let isPaused = false;
 let snakeColor = '#00FF00';
 let gridSize = 20;
 let foodColor = '#FF0000';
 let scoreMultiplier = 1;
+let gameStyle = 'classic';
 const powerupFrequency = 0.3;
+let particles = [];
+
+settingsButton.addEventListener('click', () => {
+    if (isGameOver) {
+        settingsPanel.style.display = 'flex';
+        settingsSnakeColorInput.value = snakeColorInput.value;
+        settingsGameSpeedInput.value = gameSpeedInput.value;
+        settingsGridSizeInput.value = gridSizeInput.value;
+        settingsFoodColorInput.value = foodColorInput.value;
+        settingsGameStyleInput.value = gameStyleInput.value;
+    }
+});
+
+closeSettingsButton.addEventListener('click', () => {
+    settingsPanel.style.display = 'none';
+});
+
+applySettingsButton.addEventListener('click', () => {
+    snakeColorInput.value = settingsSnakeColorInput.value;
+    gameSpeedInput.value = settingsGameSpeedInput.value;
+    gridSizeInput.value = settingsGridSizeInput.value;
+    foodColorInput.value = settingsFoodColorInput.value;
+    gameStyleInput.value = settingsGameStyleInput.value;
+    initializeGame();
+    settingsPanel.style.display = 'none';
+});
 
 function initializeGame() {
     snakeColor = snakeColorInput.value;
     gameInterval = parseInt(gameSpeedInput.value, 10);
     gridSize = parseInt(gridSizeInput.value, 10);
     foodColor = foodColorInput.value;
+    gameStyle = gameStyleInput.value;
 
     canvas.width = gridSize * 20;
     canvas.height = gridSize * 20;
+
+    // Remove any existing style classes
+    canvas.className = '';
+    // Add the selected style class
+    canvas.classList.add(gameStyle);
 
     // Load high score for the current grid size and speed
     const highScoreKey = `highScore_${gridSize}_${gameInterval}`;
@@ -65,6 +109,9 @@ function gameLoop() {
     if (isGameOver || isPaused) return;
     update();
     draw();
+    if (gameStyle === 'modern') {
+        drawParticles();
+    }
     gameLoopId = setTimeout(gameLoop, gameInterval);
 }
 
@@ -96,6 +143,9 @@ function update() {
             const highScoreKey = `highScore_${gridSize}_${gameInterval}`;
             localStorage.setItem(highScoreKey, highScore);
         }
+        if (gameStyle === 'modern') {
+            particles.push(...createParticles(head.x * gridSize + gridSize / 2, head.y * gridSize + gridSize / 2, foodColor));
+        }
         spawnFood();
         spawnPowerUp();
     } else {
@@ -103,6 +153,9 @@ function update() {
     }
 
     if (powerUp && head.x === powerUp.x && head.y === powerUp.y) {
+        if (gameStyle === 'modern') {
+            particles.push(...createParticles(head.x * gridSize + gridSize / 2, head.y * gridSize + gridSize / 2, 'blue'));
+        }
         activatePowerUp(powerUp.type);
         powerUp = null;
     }
@@ -119,26 +172,116 @@ function update() {
 
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = snakeColor;
+
+    // Draw snake with style based on selected category
+    ctx.save();
     snake.forEach((part, index) => {
-        ctx.fillRect(part.x * gridSize, part.y * gridSize, gridSize, gridSize);
-        if (index === 0) {
+        ctx.beginPath();
+        if (gameStyle === 'classic') {
+            ctx.rect(part.x * gridSize, part.y * gridSize, gridSize, gridSize);
+        } else {
+            ctx.arc(part.x * gridSize + gridSize / 2, part.y * gridSize + gridSize / 2, gridSize / 2, 0, Math.PI * 2);
+        }
+        ctx.closePath();
+        ctx.fillStyle = snakeColor;
+        ctx.strokeStyle = 'black';
+        ctx.lineWidth = 2;
+        ctx.fill();
+        ctx.stroke();
+        if (index === 0 && gameStyle !== 'classic') {
+            // Draw eyes on the snake's head for non-classic styles
             ctx.fillStyle = 'black';
-            ctx.fillRect(part.x * gridSize + 5, part.y * gridSize + 5, 2, 2);
-            ctx.fillRect(part.x * gridSize + 13, part.y * gridSize + 5, 2, 2);
+            ctx.beginPath();
+            ctx.arc(part.x * gridSize + gridSize / 4, part.y * gridSize + gridSize / 4, gridSize / 8, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(part.x * gridSize + 3 * gridSize / 4, part.y * gridSize + gridSize / 4, gridSize / 8, 0, Math.PI * 2);
+            ctx.fill();
         }
     });
-    ctx.fillStyle = foodColor;
-    ctx.fillRect(food.x * gridSize, food.y * gridSize, gridSize, gridSize);
-    if (powerUp) {
-        ctx.fillStyle = 'blue';
-        ctx.fillRect(powerUp.x * gridSize, powerUp.y * gridSize, gridSize, gridSize);
+    ctx.restore();
+
+    // Draw food with style based on selected category
+    ctx.save();
+    ctx.beginPath();
+    if (gameStyle === 'classic') {
+        ctx.rect(food.x * gridSize, food.y * gridSize, gridSize, gridSize);
+    } else {
+        ctx.arc(food.x * gridSize + gridSize / 2, food.y * gridSize + gridSize / 2, gridSize / 2, 0, Math.PI * 2);
     }
-    if (isInvincible) {
+    ctx.fillStyle = foodColor;
+    ctx.strokeStyle = 'black';
+    ctx.lineWidth = 2;
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+
+    // Draw power-up with style based on selected category
+    if (powerUp) {
+        ctx.save();
+        ctx.beginPath();
+        if (gameStyle === 'classic') {
+            ctx.rect(powerUp.x * gridSize, powerUp.y * gridSize, gridSize, gridSize);
+        } else {
+            ctx.arc(powerUp.x * gridSize + gridSize / 2, powerUp.y * gridSize + gridSize / 2, gridSize / 2, 0, Math.PI * 2);
+        }
+        ctx.fillStyle = 'blue';
         ctx.strokeStyle = 'yellow';
         ctx.lineWidth = 2;
-        ctx.strokeRect(0, 0, canvas.width, canvas.height);
+        ctx.fill();
+        ctx.stroke();
+        ctx.restore();
     }
+
+    // Draw grid lines if applicable
+    if (gameStyle === 'classic' || gameStyle === 'retro') {
+        ctx.strokeStyle = '#ddd';
+        ctx.lineWidth = 1;
+        for (let i = 0; i < canvas.width; i += gridSize) {
+            ctx.beginPath();
+            ctx.moveTo(i, 0);
+            ctx.lineTo(i, canvas.height);
+            ctx.stroke();
+        }
+        for (let i = 0; i < canvas.height; i += gridSize) {
+            ctx.beginPath();
+            ctx.moveTo(0, i);
+            ctx.lineTo(canvas.width, i);
+            ctx.stroke();
+        }
+    }
+}
+
+function createParticles(x, y, color) {
+    const particlesArray = [];
+    for (let i = 0; i < 10; i++) { // Reduced number of particles for quicker effect
+        particlesArray.push({
+            x: x,
+            y: y,
+            size: Math.random() * 2 + 1, // Larger initial size for quicker decay
+            speedX: Math.random() * 4 - 2, // Faster movement
+            speedY: Math.random() * 4 - 2, // Faster movement
+            color: color,
+            alpha: 1 // Start with full opacity
+        });
+    }
+    return particlesArray;
+}
+
+function drawParticles() {
+    particles.forEach((particle, index) => {
+        ctx.beginPath();
+        ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+        ctx.fillStyle = `${particle.color}${Math.floor(particle.alpha * 255).toString(16).padStart(2, '0')}`;
+        ctx.fill();
+        particle.x += particle.speedX;
+        particle.y += particle.speedY;
+        particle.size -= 0.1; // Quicker decay
+        particle.alpha -= 0.05; // Gradually reduce opacity
+        if (particle.size <= 0 || particle.alpha <= 0) {
+            particles.splice(index, 1);
+        }
+    });
 }
 
 function spawnFood() {
@@ -200,11 +343,11 @@ function activatePowerUp(type) {
     }
 
     // Notify the player when the power-up is about to end
-    setTimeout(() => {
+    powerUpTimeoutId = setTimeout(() => {
         powerupMessage.textContent = `Power-Up ending soon!`;
     }, powerUpDuration - 2000); // Notify 2 seconds before the power-up ends
 
-    setTimeout(() => {
+    powerUpTimeoutId = setTimeout(() => {
         switch (type) {
             case 'invincibility':
                 isInvincible = false;
@@ -224,6 +367,7 @@ function activatePowerUp(type) {
 function gameOver() {
     isGameOver = true;
     clearTimeout(gameLoopId);
+    clearTimeout(powerUpTimeoutId);
     gameOverScore.textContent = `Your Score: ${score}`;
     gameOverHighScore.textContent = `High Score: ${highScore}`;
     gameOverScreen.style.display = 'flex';
@@ -250,10 +394,14 @@ function togglePause() {
     isPaused = !isPaused;
     if (isPaused) {
         clearTimeout(gameLoopId);
+        clearTimeout(powerUpTimeoutId);
         pauseScreen.style.display = 'flex';
     } else {
         pauseScreen.style.display = 'none';
         gameLoop();
+        if (activePowerUp) {
+            activatePowerUp(activePowerUp);
+        }
     }
 }
 
