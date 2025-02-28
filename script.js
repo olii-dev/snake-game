@@ -92,12 +92,9 @@ function initializeGame() {
     canvas.width = gridSize * 20;
     canvas.height = gridSize * 20;
 
-    // Remove any existing style classes
     canvas.className = '';
-    // Add the selected style class
     canvas.classList.add(gameStyle);
 
-    // Load high score for the current grid size and speed
     const highScoreKey = `highScore_${gridSize}_${gameInterval}`;
     highScore = localStorage.getItem(highScoreKey) || 0;
     highScoreDisplay.textContent = `High Score: ${highScore}`;
@@ -126,7 +123,12 @@ function update() {
         if (head.y < 0) head.y = canvas.height / gridSize - 1;
         if (head.y >= canvas.height / gridSize) head.y = 0;
     } else {
-        if (head.x < 0 || head.x >= canvas.width / gridSize || head.y < 0 || head.y >= canvas.height / gridSize || snake.some((part, index) => index !== 0 && part.x === head.x && part.y === head.y)) {
+        if (head.x < 0 || head.x >= canvas.width / gridSize || head.y < 0 || head.y >= canvas.height / gridSize) {
+            gameOver();
+            return;
+        }
+
+        if (snake.some((part, index) => index !== 0 && part.x === head.x && part.y === head.y)) {
             gameOver();
             return;
         }
@@ -173,7 +175,6 @@ function update() {
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Draw snake with style based on selected category
     ctx.save();
     snake.forEach((part, index) => {
         ctx.beginPath();
@@ -189,7 +190,6 @@ function draw() {
         ctx.fill();
         ctx.stroke();
         if (index === 0 && gameStyle !== 'classic') {
-            // Draw eyes on the snake's head for non-classic styles
             ctx.fillStyle = 'black';
             ctx.beginPath();
             ctx.arc(part.x * gridSize + gridSize / 4, part.y * gridSize + gridSize / 4, gridSize / 8, 0, Math.PI * 2);
@@ -201,7 +201,6 @@ function draw() {
     });
     ctx.restore();
 
-    // Draw food with style based on selected category
     ctx.save();
     ctx.beginPath();
     if (gameStyle === 'classic') {
@@ -216,7 +215,6 @@ function draw() {
     ctx.stroke();
     ctx.restore();
 
-    // Draw power-up with style based on selected category
     if (powerUp) {
         ctx.save();
         ctx.beginPath();
@@ -230,10 +228,13 @@ function draw() {
         ctx.lineWidth = 2;
         ctx.fill();
         ctx.stroke();
+
+        ctx.shadowColor = 'yellow';
+        ctx.shadowBlur = 15;
+        ctx.stroke();
         ctx.restore();
     }
 
-    // Draw grid lines if applicable
     if (gameStyle === 'classic' || gameStyle === 'retro') {
         ctx.strokeStyle = '#ddd';
         ctx.lineWidth = 1;
@@ -254,15 +255,15 @@ function draw() {
 
 function createParticles(x, y, color) {
     const particlesArray = [];
-    for (let i = 0; i < 10; i++) { // Reduced number of particles for quicker effect
+    for (let i = 0; i < 10; i++) {
         particlesArray.push({
             x: x,
             y: y,
-            size: Math.random() * 2 + 1, // Larger initial size for quicker decay
-            speedX: Math.random() * 4 - 2, // Faster movement
-            speedY: Math.random() * 4 - 2, // Faster movement
+            size: Math.random() * 2 + 0.5,
+            speedX: Math.random() * 2 - 1,
+            speedY: Math.random() * 2 - 1,
             color: color,
-            alpha: 1 // Start with full opacity
+            alpha: 1
         });
     }
     return particlesArray;
@@ -276,8 +277,8 @@ function drawParticles() {
         ctx.fill();
         particle.x += particle.speedX;
         particle.y += particle.speedY;
-        particle.size -= 0.1; // Quicker decay
-        particle.alpha -= 0.05; // Gradually reduce opacity
+        particle.size -= 0.02;
+        particle.alpha -= 0.03;
         if (particle.size <= 0 || particle.alpha <= 0) {
             particles.splice(index, 1);
         }
@@ -285,10 +286,15 @@ function drawParticles() {
 }
 
 function spawnFood() {
-    food = {
-        x: Math.floor(Math.random() * (canvas.width / gridSize)),
-        y: Math.floor(Math.random() * (canvas.height / gridSize))
-    };
+    let newFoodPosition;
+    do {
+        newFoodPosition = {
+            x: Math.floor(Math.random() * (canvas.width / gridSize)),
+            y: Math.floor(Math.random() * (canvas.height / gridSize))
+        };
+    } while (snake.some(part => part.x === newFoodPosition.x && part.y === newFoodPosition.y));
+
+    food = newFoodPosition;
 }
 
 function spawnPowerUp() {
@@ -296,16 +302,22 @@ function spawnPowerUp() {
         return;
     }
     if (Math.random() < powerupFrequency) {
-        powerUp = {
-            x: Math.floor(Math.random() * (canvas.width / gridSize)),
-            y: Math.floor(Math.random() * (canvas.height / gridSize)),
-            type: getRandomPowerUpType()
-        };
+        let newPosition;
+        do {
+            newPosition = {
+                x: Math.floor(Math.random() * (canvas.width / gridSize)),
+                y: Math.floor(Math.random() * (canvas.height / gridSize))
+            };
+        } while (
+            snake.some(part => part.x === newPosition.x && part.y === newPosition.y) ||
+            (food.x === newPosition.x && food.y === newPosition.y)
+        );
+        powerUp = { ...newPosition, type: getRandomPowerUpType() };
     }
 }
 
 function getRandomPowerUpType() {
-    const types = ['invincibility', 'growth', 'slow', 'scoreMultiplier'];
+    const types = ['invincibility', 'growth', 'slow', 'scoreMultiplier', 'shrink', 'teleport'];
     return types[Math.floor(Math.random() * types.length)];
 }
 
@@ -340,13 +352,30 @@ function activatePowerUp(type) {
             powerupMessage.textContent = 'Power-Up: Score Multiplier!';
             powerUpDuration = 7000;
             break;
+        case 'shrink':
+            snake.splice(Math.max(snake.length - 3, 1));
+            activePowerUp = 'shrink';
+            powerupMessage.textContent = 'Power-Up: Shrink!';
+            score = snake.length - 1;
+            scoreDisplay.textContent = `Score: ${score}`;
+            powerUpDuration = 3000;
+            break;
+        case 'teleport':
+            const newPosition = {
+                x: Math.floor(Math.random() * (canvas.width / gridSize)),
+                y: Math.floor(Math.random() * (canvas.height / gridSize))
+            };
+            snake[0] = newPosition;
+            activePowerUp = 'teleport';
+            powerupMessage.textContent = 'Power-Up: Teleport!';
+            powerUpDuration = 3000;
+            break;
     }
 
-    // Notify the player when the power-up is about to end
     powerUpTimeoutId = setTimeout(() => {
         powerupMessage.textContent = `Power-Up ending soon!`;
-    }, powerUpDuration - 2000); // Notify 2 seconds before the power-up ends
-
+    }, powerUpDuration - 2000);
+    
     powerUpTimeoutId = setTimeout(() => {
         switch (type) {
             case 'invincibility':
@@ -419,16 +448,20 @@ document.addEventListener('keydown', event => {
     }
     switch (event.key) {
         case 'ArrowUp':
-            if (direction.y === 0) direction = { x: 0, y: -1 };
+        case 'w':
+            if (direction.y !== 1) direction = { x: 0, y: -1 };
             break;
         case 'ArrowDown':
-            if (direction.y === 0) direction = { x: 0, y: 1 };
+        case 's':
+            if (direction.y !== -1) direction = { x: 0, y: 1 };
             break;
         case 'ArrowLeft':
-            if (direction.x === 0) direction = { x: -1, y: 0 };
+        case 'a':
+            if (direction.x !== 1) direction = { x: -1, y: 0 };
             break;
         case 'ArrowRight':
-            if (direction.x === 0) direction = { x: 1, y: 0 };
+        case 'd':
+            if (direction.x !== -1) direction = { x: 1, y: 0 };
             break;
     }
 });
