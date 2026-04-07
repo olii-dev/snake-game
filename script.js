@@ -14,6 +14,7 @@ const settingsGameSpeedInput = document.getElementById('settings-game-speed');
 const settingsGridSizeInput = document.getElementById('settings-grid-size');
 const settingsFoodColorInput = document.getElementById('settings-food-color');
 const settingsGameStyleInput = document.getElementById('settings-game-style');
+const gameOverSettingsButton = document.getElementById('game-over-settings-button');
 
 startButton.addEventListener('click', () => {
     startScreen.style.display = 'none';
@@ -59,14 +60,23 @@ let particles = [];
 
 settingsButton.addEventListener('click', () => {
     if (isGameOver) {
-        settingsPanel.style.display = 'flex';
-        settingsSnakeColorInput.value = snakeColorInput.value;
-        settingsGameSpeedInput.value = gameSpeedInput.value;
-        settingsGridSizeInput.value = gridSizeInput.value;
-        settingsFoodColorInput.value = foodColorInput.value;
-        settingsGameStyleInput.value = gameStyleInput.value;
+        openSettingsPanel();
     }
 });
+
+gameOverSettingsButton.addEventListener('click', () => {
+    openSettingsPanel();
+});
+
+function openSettingsPanel() {
+    settingsPanel.style.display = 'flex';
+    settingsSnakeColorInput.value = snakeColorInput.value;
+    settingsGameSpeedInput.value = gameSpeedInput.value;
+    settingsGridSizeInput.value = gridSizeInput.value;
+    settingsFoodColorInput.value = foodColorInput.value;
+    settingsGameStyleInput.value = gameStyleInput.value;
+    addButtonAnimation(settingsPanel);
+}
 
 closeSettingsButton.addEventListener('click', () => {
     settingsPanel.style.display = 'none';
@@ -468,3 +478,136 @@ document.addEventListener('keydown', event => {
 
 highScoreDisplay.textContent = `High Score: ${highScore}`;
 spawnFood();
+
+function addButtonAnimation(element) {
+    element.style.animation = 'none';
+    element.offsetHeight; // Trigger reflow
+    element.style.animation = 'slideUp 0.5s ease';
+}
+
+function animateScore(element, targetScore) {
+    const currentScore = parseInt(element.textContent.replace(/\D/g, '')) || 0;
+    if (currentScore === targetScore) return;
+    
+    const duration = 500;
+    const startTime = performance.now();
+    
+    function updateScore(currentTime) {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const easeProgress = 1 - Math.pow(1 - progress, 3);
+        const newScore = Math.floor(currentScore + (targetScore - currentScore) * easeProgress);
+        
+        element.textContent = `Score: ${newScore}`;
+        
+        if (progress < 1) {
+            requestAnimationFrame(updateScore);
+        } else {
+            element.textContent = `Score: ${targetScore}`;
+        }
+    }
+    
+    requestAnimationFrame(updateScore);
+}
+
+function addVisualFeedback(element, type = 'success') {
+    element.style.transition = 'transform 0.2s ease';
+    element.style.transform = 'scale(1.1)';
+    
+    const glowColors = {
+        success: 'rgba(0, 245, 255, 0.8)',
+        warning: 'rgba(255, 42, 109, 0.8)',
+        info: 'rgba(191, 0, 255, 0.8)'
+    };
+    
+    element.style.boxShadow = `0 0 30px ${glowColors[type]}`;
+    
+    setTimeout(() => {
+        element.style.transform = 'scale(1)';
+        element.style.boxShadow = '';
+    }, 200);
+}
+
+function showPowerUpVisualFeedback(type) {
+    const powerupMessage = document.getElementById('powerup-message');
+    powerupMessage.style.animation = 'none';
+    powerupMessage.offsetHeight; // Trigger reflow
+    powerupMessage.style.animation = 'pulse 0.5s ease-in-out 3';
+    
+    setTimeout(() => {
+        powerupMessage.style.animation = 'none';
+    }, 1500);
+}
+
+const originalDraw = draw;
+
+draw = function() {
+    originalDraw();
+    
+    if (gameStyle === 'modern') {
+        drawGlowEffects();
+    }
+};
+
+function drawGlowEffects() {
+    ctx.save();
+    
+    snake.forEach((part, index) => {
+        if (index === 0) {
+            const gradient = ctx.createRadialGradient(
+                part.x * gridSize + gridSize / 2,
+                part.y * gridSize + gridSize / 2,
+                0,
+                part.x * gridSize + gridSize / 2,
+                part.y * gridSize + gridSize / 2,
+                gridSize
+            );
+            gradient.addColorStop(0, `${snakeColor}40`);
+            gradient.addColorStop(1, 'transparent');
+            
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.arc(part.x * gridSize + gridSize / 2, part.y * gridSize + gridSize / 2, gridSize, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    });
+    
+    ctx.restore();
+}
+
+const originalUpdate = update;
+
+update = function() {
+    const oldScore = score;
+    originalUpdate();
+    
+    if (score !== oldScore && gameStyle === 'modern') {
+        animateScore(scoreDisplay, score);
+    }
+};
+
+startButton.addEventListener('mouseenter', () => {
+    addVisualFeedback(startButton, 'success');
+});
+
+restartButton.addEventListener('mouseenter', () => {
+    addVisualFeedback(restartButton, 'success');
+});
+
+continueButton.addEventListener('mouseenter', () => {
+    addVisualFeedback(continueButton, 'info');
+});
+
+document.querySelectorAll('button').forEach(button => {
+    button.addEventListener('mousedown', () => {
+        button.style.transform = 'scale(0.98)';
+    });
+    
+    button.addEventListener('mouseup', () => {
+        button.style.transform = '';
+    });
+    
+    button.addEventListener('mouseleave', () => {
+        button.style.transform = '';
+    });
+});
